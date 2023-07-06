@@ -325,13 +325,18 @@ if __name__ == "__main__":
             )
         )
         # Save history
-        history = history.append(
-            {
-                "epoch": ep,
-                "train_loss": train_loss,
-                "valid_loss": valid_loss,
-                "lr": learning_rate,
-            },
+        history = pd.concat(
+            [
+                history,
+                pd.DataFrame(
+                    {
+                        "epoch": [ep],
+                        "train_loss": [train_loss],
+                        "valid_loss": [valid_loss],
+                        "lr": [learning_rate],
+                    }
+                ),
+            ],
             ignore_index=True,
         )
         history.to_csv(os.path.join(folder, "history.csv"), index=False)
