@@ -2,10 +2,18 @@ import pandas as pd
 import numpy as np
 
 
-def get_splits(age_at_exam, patient_ids, exam_ids, splits, min_age_valid=16, max_age_valid=85, seed=0):
+def get_splits(
+    age_at_exam,
+    patient_ids,
+    exam_ids,
+    splits,
+    min_age_valid=16,
+    max_age_valid=85,
+    seed=0,
+):
     rng = np.random.RandomState(seed)
     if sum(splits) > 1.0:
-        raise ValueError('splits should be sum to a number smaller than one.')
+        raise ValueError("splits should be sum to a number smaller than one.")
     n_exams = len(exam_ids)
     # Get patients
     patients = np.unique(patient_ids)
@@ -82,21 +90,36 @@ if __name__ == "__main__":
     import argparse
     import warnings
 
-    parser = argparse.ArgumentParser(description='Generate data summary for the age prediction problem')
-    parser.add_argument('file',
-                        help='csv file to read data from.')
-    parser.add_argument('--exam_id_col', default='N_exame',
-                        help='column in csv containing exam id')
-    parser.add_argument('--age_col', default='Idade',
-                        help='column in csv containing age')
-    parser.add_argument('--patient_id_col', default='N_paciente_univoco',
-                        help='column in csv containing patient id')
-    parser.add_argument('--splits', default=[0.15, 0.05], nargs='*', type=float,
-                        help='percentage of data in each split')
-    parser.add_argument('--splits_names', default=['test', 'val', 'train'], nargs='*', type=str,
-                        help='split names')
-    parser.add_argument('--no_plot', action='store_true',
-                        help='dont show plots')
+    parser = argparse.ArgumentParser(
+        description="Generate data summary for the age prediction problem"
+    )
+    parser.add_argument("file", help="csv file to read data from.")
+    parser.add_argument(
+        "--exam_id_col", default="N_exame", help="column in csv containing exam id"
+    )
+    parser.add_argument(
+        "--age_col", default="Idade", help="column in csv containing age"
+    )
+    parser.add_argument(
+        "--patient_id_col",
+        default="N_paciente_univoco",
+        help="column in csv containing patient id",
+    )
+    parser.add_argument(
+        "--splits",
+        default=[0.15, 0.05],
+        nargs="*",
+        type=float,
+        help="percentage of data in each split",
+    )
+    parser.add_argument(
+        "--splits_names",
+        default=["test", "val", "train"],
+        nargs="*",
+        type=str,
+        help="split names",
+    )
+    parser.add_argument("--no_plot", action="store_true", help="dont show plots")
     args, unk = parser.parse_known_args()
     if unk:
         warnings.warn("Unknown arguments:" + str(unk) + ".")
@@ -110,11 +133,14 @@ if __name__ == "__main__":
     age_at_exam = np.array(df[args.age_col])
     patient_ids = np.array(df[args.patient_id_col], dtype=int)
     # define splits
-    patients_in_splits, single_exam_in_split, exams_in_splits = get_splits(age_at_exam, patient_ids, exam_ids, args.splits)
+    patients_in_splits, single_exam_in_split, exams_in_splits = get_splits(
+        age_at_exam, patient_ids, exam_ids, args.splits
+    )
 
     if not args.no_plot:
         import seaborn as sns
         import matplotlib.pyplot as plt
+
         n = len(args.splits) + 1
         fig, ax = plt.subplots(nrows=n)
         for i in range(n):
@@ -123,4 +149,3 @@ if __name__ == "__main__":
             sns.histplot(age, ax=ax[i], kde=False, bins=range(0, 130, 1))
             sns.histplot(age_single_exam, ax=ax[i], kde=False, bins=range(0, 130, 1))
         plt.show()
-

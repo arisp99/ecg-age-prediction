@@ -5,13 +5,13 @@ import numpy as np
 
 class BatchDataloader:
     def __init__(self, *tensors, bs=1, mask=None):
-        nonzero_idx, = np.nonzero(mask)
+        (nonzero_idx,) = np.nonzero(mask)
         self.tensors = tensors
         self.batch_size = bs
         self.mask = mask
         if nonzero_idx.size > 0:
             self.start_idx = min(nonzero_idx)
-            self.end_idx = max(nonzero_idx)+1
+            self.end_idx = max(nonzero_idx) + 1
         else:
             self.start_idx = 0
             self.end_idx = 0
@@ -20,12 +20,12 @@ class BatchDataloader:
         if self.start == self.end_idx:
             raise StopIteration
         end = min(self.start + self.batch_size, self.end_idx)
-        batch_mask = self.mask[self.start:end]
+        batch_mask = self.mask[self.start : end]
         while sum(batch_mask) == 0:
             self.start = end
             end = min(self.start + self.batch_size, self.end_idx)
-            batch_mask = self.mask[self.start:end]
-        batch = [np.array(t[self.start:end]) for t in self.tensors]
+            batch_mask = self.mask[self.start : end]
+        batch = [np.array(t[self.start : end]) for t in self.tensors]
         self.start = end
         self.sum += sum(batch_mask)
         return [torch.tensor(b[batch_mask], dtype=torch.float32) for b in batch]

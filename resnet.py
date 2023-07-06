@@ -14,27 +14,41 @@ def _downsample(n_samples_in, n_samples_out):
     if downsample < 1:
         raise ValueError("Number of samples should always decrease")
     if n_samples_in % n_samples_out != 0:
-        raise ValueError("Number of samples for two consecutive blocks "
-                         "should always decrease by an integer factor.")
+        raise ValueError(
+            "Number of samples for two consecutive blocks "
+            "should always decrease by an integer factor."
+        )
     return downsample
 
 
 class ResBlock1d(nn.Module):
     """Residual network unit for unidimensional signals."""
 
-    def __init__(self, n_filters_in, n_filters_out, downsample, kernel_size, dropout_rate):
+    def __init__(
+        self, n_filters_in, n_filters_out, downsample, kernel_size, dropout_rate
+    ):
         if kernel_size % 2 == 0:
-            raise ValueError("The current implementation only support odd values for `kernel_size`.")
+            raise ValueError(
+                "The current implementation only support odd values for `kernel_size`."
+            )
         super(ResBlock1d, self).__init__()
         # Forward path
         padding = _padding(1, kernel_size)
-        self.conv1 = nn.Conv1d(n_filters_in, n_filters_out, kernel_size, padding=padding, bias=False)
+        self.conv1 = nn.Conv1d(
+            n_filters_in, n_filters_out, kernel_size, padding=padding, bias=False
+        )
         self.bn1 = nn.BatchNorm1d(n_filters_out)
         self.relu = nn.ReLU()
         self.dropout1 = nn.Dropout(dropout_rate)
         padding = _padding(downsample, kernel_size)
-        self.conv2 = nn.Conv1d(n_filters_out, n_filters_out, kernel_size,
-                               stride=downsample, padding=padding, bias=False)
+        self.conv2 = nn.Conv1d(
+            n_filters_out,
+            n_filters_out,
+            kernel_size,
+            stride=downsample,
+            padding=padding,
+            bias=False,
+        )
         self.bn2 = nn.BatchNorm1d(n_filters_out)
         self.dropout2 = nn.Dropout(dropout_rate)
 
@@ -101,16 +115,26 @@ class ResNet1d(nn.Module):
            on Computer Vision and Pattern Recognition (CVPR), 2016, pp. 770-778. https://arxiv.org/pdf/1512.03385.pdf
     """
 
-    def __init__(self, input_dim, blocks_dim, n_classes, kernel_size=17, dropout_rate=0.8):
+    def __init__(
+        self, input_dim, blocks_dim, n_classes, kernel_size=17, dropout_rate=0.8
+    ):
         super(ResNet1d, self).__init__()
         # First layers
         n_filters_in, n_filters_out = input_dim[0], blocks_dim[0][0]
         n_samples_in, n_samples_out = input_dim[1], blocks_dim[0][1]
-        downsample = _downsample(n_samples_in, n_samples_out)
-        padding = _padding(downsample, kernel_size)
-        self.conv1 = nn.Conv1d(n_filters_in, n_filters_out, kernel_size, bias=False,
-                               stride=downsample, padding=padding)
-        self.bn1 = nn.BatchNorm1d(n_filters_out)
+        downsample = _downsample(n_samples_in, n_samples_out)  # used for stride length
+        padding = _padding(
+            downsample, kernel_size
+        )  # adding zeros to both sides of the input
+        self.conv1 = nn.Conv1d(
+            n_filters_in,
+            n_filters_out,
+            kernel_size,
+            bias=False,
+            stride=downsample,
+            padding=padding,
+        )  # convolutional layer on 1D data
+        self.bn1 = nn.BatchNorm1d(n_filters_out)  # batch normalization
 
         # Residual block layers
         self.res_blocks = []
@@ -118,8 +142,10 @@ class ResNet1d(nn.Module):
             n_filters_in, n_filters_out = n_filters_out, n_filters
             n_samples_in, n_samples_out = n_samples_out, n_samples
             downsample = _downsample(n_samples_in, n_samples_out)
-            resblk1d = ResBlock1d(n_filters_in, n_filters_out, downsample, kernel_size, dropout_rate)
-            self.add_module('resblock1d_{0}'.format(i), resblk1d)
+            resblk1d = ResBlock1d(
+                n_filters_in, n_filters_out, downsample, kernel_size, dropout_rate
+            )
+            self.add_module("resblock1d_{0}".format(i), resblk1d)
             self.res_blocks += [resblk1d]
 
         # Linear layer
@@ -145,4 +171,3 @@ class ResNet1d(nn.Module):
         # Fully conected layer
         x = self.lin(x)
         return x
-
