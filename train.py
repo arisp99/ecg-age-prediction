@@ -104,6 +104,7 @@ if __name__ == "__main__":
         add_help=True,
         description="Train model to predict rage from the raw ecg tracing.",
     )
+    group = parser.add_argument_group("ECG options")
     parser.add_argument(
         "--epochs", type=int, default=70, help="maximum number of epochs (default: 70)"
     )
@@ -113,18 +114,23 @@ if __name__ == "__main__":
         default=2,
         help="random seed for number generator (default: 2)",
     )
-    parser.add_argument(
-        "--sample_freq",
+    group.add_argument(
+        "--ecg_freq",
         type=int,
         default=400,
-        help="sample frequency (in Hz) in which all traces will be resampled at (default: 400)",
+        help="sample frequency (Hz) to which all traces will be resampled (default: 400)",
     )
-    parser.add_argument(
-        "--seq_length",
+    group.add_argument(
+        "--ecg_length",
         type=int,
         default=4096,
-        help="size (in # of samples) for all traces. If needed traces will be zeropadded"
-        "to fit into the given size. (default: 4096)",
+        help="size (# of samples) for all traces. If needed, traces will be zeropadded to fit into the given size (default: 4096)",
+    )
+    group.add_argument(
+        "--ecg_leads",
+        type=int,
+        default=12,
+        help="the number of ECG leads (default: 12)",
     )
     parser.add_argument(
         "--scale_multiplier",
@@ -254,10 +260,10 @@ if __name__ == "__main__":
     tqdm.write("Done!")
 
     tqdm.write("Define model...")
-    N_LEADS = 12  # the 12 leads
-    N_CLASSES = 1  # just the age
+    N_LEADS = args.ecg_leads
+    N_CLASSES = 1  # age
     model = ResNet1d(
-        input_dim=(N_LEADS, args.seq_length),
+        input_dim=(N_LEADS, args.ecg_length),
         blocks_dim=list(zip(args.net_filter_size, args.net_seq_lengh)),
         n_classes=N_CLASSES,
         kernel_size=args.kernel_size,
